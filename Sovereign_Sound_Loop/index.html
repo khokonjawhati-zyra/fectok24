@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sovereign Sound Control</title>
+    <style>
+        body {
+            background: #121212;
+            color: #FF00FF;
+            font-family: sans-serif;
+            padding: 30px;
+        }
+
+        .info-text {
+            color: #FFFF00;
+        }
+    </style>
+</head>
+
+<body>
+    <h3>🚀 TikTok Sound Logic Control (A_110)</h3>
+    Slider 1 (Viral Boost %): <input type='range' id='bv' min='1' max='200' value='100' oninput='u()'
+        title='Viral Boost'> <span id='bvv'>100</span><br><br>
+    Slider 2 (Feed Frequency): <input type='range' id='fv' min='1' max='50' value='10' oninput='u()'
+        title='Feed Frequency'> <span id='fvv'>10</span><br>
+    <p class="info-text">
+        *স্লাইডার ১: সাউন্ড ট্রেন্ডিং হওয়ার গতি। <br>
+        *স্লাইডার ২: একই সাউন্ডের ভিডিও কতক্ষণ পর পর আসবে।
+    </p>
+    <script>
+        function u() {
+            const b = document.getElementById('bv').value, f = document.getElementById('fv').value;
+            document.getElementById('bvv').innerText = b; document.getElementById('fvv').innerText = f;
+            fetch('http://localhost:9900/admin_logic?viral_boost=' + b + '&rec_limit=' + f, { method: 'POST' });
+        }
+    </script>
+</body>
+
+</html>

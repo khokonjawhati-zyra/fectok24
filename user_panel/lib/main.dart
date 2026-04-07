@@ -26,10 +26,11 @@ final List<String> testVideos = []; // Sovereign Master Standard: No legacy bloa
 // Automatically detects browsing origin. Fallback to localhost if used as file.
 String get globalSovereignHost {
   if (kIsWeb) {
-    return Uri.base.host.isNotEmpty ? Uri.base.host : 'localhost';
+    String h = Uri.base.host;
+    return h.isNotEmpty ? h : 'localhost';
   }
-  // Sovereign V15: Final Production Endpoint
-  return '167.71.193.34'; 
+  // Mobile Fallback: Detect if we are in production nursery
+  return 'fectok.com'; 
 }
 
 // 1. Core Security Shield [SSL-READY]
@@ -533,11 +534,9 @@ class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObse
   void _connect() {
     try {
       final String host = globalSovereignHost;
-      String wsUrl = "ws://$host:5000/ws/user"; 
-      // Sovereign Standard: Secure Handshake Injection
-
+      String wsUrl = host.contains('fectok.com') ? "wss://$host/ws/user" : "ws://$host:5000/ws/user";
+      
       if (kIsWeb) {
-        wsUrl = "ws://$host:5000/ws/user";
         debugPrint("QUANTUM_SYNC: Handshake Request -> $wsUrl");
       }
 

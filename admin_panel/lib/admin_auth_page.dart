@@ -37,6 +37,18 @@ class _AdminAuthPageState extends State<AdminAuthPage> with TickerProviderStateM
     _shufflePin();
   }
 
+  // Sovereign V15: Dynamic Host Detection for Mirror Parity
+  String get _currentHost {
+    if (Uri.base.host.isNotEmpty) return Uri.base.host;
+    return '167.71.193.34'; // Fallback for direct node access
+  }
+  
+  String get _apiBaseUrl {
+    // If running on domain, ports are handled by Nginx paths
+    if (Uri.base.host.contains('fectok.com')) return 'https://$_currentHost';
+    return 'http://$_currentHost:5000'; // Localhost/IP standby
+  }
+
   @override
   void dispose() {
     _matrixController.dispose();
@@ -62,7 +74,7 @@ class _AdminAuthPageState extends State<AdminAuthPage> with TickerProviderStateM
 
     try {
       final response = await http.post(
-        Uri.parse('http://167.71.193.34/admin_auth_init'),
+        Uri.parse('$_apiBaseUrl/admin_auth_init'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'master_key': _masterPassController.text,
@@ -99,7 +111,7 @@ class _AdminAuthPageState extends State<AdminAuthPage> with TickerProviderStateM
 
     try {
       final response = await http.post(
-        Uri.parse('http://167.71.193.34/admin_auth_verify'),
+        Uri.parse('$_apiBaseUrl/admin_auth_verify'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'otp': _otpController.text,

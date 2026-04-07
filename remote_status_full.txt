@@ -1,0 +1,87 @@
+--- NGX CONFIG ---
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+
+    map $http_x_forwarded_proto $fastapi_proto {
+        default $http_x_forwarded_proto;
+        '' $scheme;
+    }
+
+    # Redirect HTTP to HTTPS
+    server {
+        listen 80;
+        server_name fectok.com vazo.fectok.com;
+        return 301 https://$host$request_uri;
+    }
+
+    server {
+        listen 443 ssl http2;
+        server_name fectok.com;
+        ssl_certificate /etc/letsencrypt/live/fectok.com/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/fectok.com/privkey.pem;
+
+        location ~* ^/(admin_auth_init|admin_auth|admin_auth_verify|verify_token|api/v15|ws/|reset_pulse|login|resend_otp|register|verify_registration|check_referral) {
+            proxy_pass http://127.0.0.1:5000;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $fastapi_proto;
+            proxy_read_timeout 86400; # Prevent WS timeouts
+        }
+        
+        location / {
+             root /opt/sovereign/core/webuser_panel;
+             try_files $uri $uri/ /index.html;
+        }
+    }
+
+    server {
+        listen 443 ssl http2;
+        server_name vazo.fectok.com;
+        ssl_certificate /etc/letsencrypt/live/fectok.com/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/fectok.com/privkey.pem;
+
+        location ~* ^/(admin_auth_init|admin_auth|admin_auth_verify|verify_token|api/v15|ws/|reset_pulse|login|resend_otp) {
+            proxy_pass http://127.0.0.1:5000;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $fastapi_proto;
+            proxy_read_timeout 86400; # Prevent WS timeouts
+        }
+        
+        location / {
+             root /opt/sovereign/core/webadmin_panel;
+             try_files $uri $uri/ /index.html;
+        }
+    }
+}
+
+--- SITES ENABLED ---
+
+--- DOCKER PS ---
+CONTAINER ID   NAMES                     STATUS          PORTS
+a3a118fa3579   sovereign_v15_backend     Up 41 minutes   
+292df39f8018   sovereign_v15_redis       Up 28 hours     0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp
+7f52f3948964   sovereign_v15_processor   Up 28 hours     
+dcbe63c3d7da   sovereign_v15_uplink      Up 9 hours      0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp

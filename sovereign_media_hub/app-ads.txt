@@ -1,0 +1,8 @@
+# [L V] KetoK Sovereign Legal Verification - 2026-02-18
+# Official Ad Inventory Authorization File
+google.com, pub-ADMOB_PROD_ID, DIRECT, f08c47fec0942fa0
+facebook.com, FB_AUDIENCE_PROD_ID, DIRECT, c2ce71da857186b0
+unity3d.com, UNITY_PROD_ID, DIRECT, 4a123bc23
+applovin.com, AL_PROD_ID, DIRECT, 7b2c145e9a
+ironsource.com, IS_PROD_ID, DIRECT, 3f8e912c0b
+mintegral.com, MT_PROD_ID, DIRECT, 1d6a54b98c

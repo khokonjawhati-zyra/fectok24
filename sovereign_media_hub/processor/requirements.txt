@@ -1,0 +1,4 @@
+# Sovereign Processor Dependencies
+fastapi
+python-multipart
+python-dotenv

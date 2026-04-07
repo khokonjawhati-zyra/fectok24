@@ -1,0 +1,63 @@
+
+server {
+    listen 80;
+    server_name fectok.com;
+
+    # Serve User Panel UI from Host Filesystem
+    location / {
+        root /opt/sovereign/core/webuser_panel;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+    }
+
+    # API Proxy for User Flow
+    location ~ ^/(login|register|verify_registration|forgot_password|reset_password|check_referral|verify_token|api|ws) {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        add_header Access-Control-Allow-Origin * always;
+    }
+}
+
+server {
+    listen 80;
+    server_name vazo.fectok.com;
+
+    # Serve Admin Panel UI from Host Filesystem
+    location / {
+        root /opt/sovereign/core/webadmin_panel;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+    }
+
+    # API Proxy for Admin Flow
+    location ~ ^/(admin_auth_init|admin_auth_verify|api|ws|vault) {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        add_header Access-Control-Allow-Origin * always;
+    }
+
+    # Sovereign Media Tunnel Bypass
+    location /video_stream/ {
+        proxy_pass http://127.0.0.1:8080/;
+        proxy_buffering off;
+        proxy_request_buffering off;
+        client_max_body_size 500M;
+    }
+}
+

@@ -1,0 +1,87 @@
+
+user  nginx;
+worker_processes  auto;
+error_log  /var/log/nginx/error.log notice;
+pid        /var/run/nginx.pid;
+events { worker_connections 1024; }
+
+http {
+    client_max_body_size 500M;
+    proxy_connect_timeout 600s;
+    proxy_send_timeout 600s;
+    proxy_read_timeout 600s;
+    send_timeout 600s;
+
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+    sendfile on;
+
+    # 1. USER PANEL (fectok.com)
+    server {
+        listen 80;
+        server_name fectok.com www.fectok.com;
+
+        location / {
+            root /usr/share/nginx/html/user;
+            index index.html;
+            try_files $uri $uri/ /index.html;
+        }
+
+        # SOUND ENGINE (AI PROCESSOR / FEED DATA) - MAPPED TO CORRECT UNIT
+        location /sound_engine/ {
+            proxy_pass http://sovereign_sound_loop-sound_engine_api-1:8000/sound_engine/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_http_version 1.1;
+        }
+
+        location /media/ {
+            alias /usr/share/nginx/html/media/;
+            autoindex off;
+            add_header Accept-Ranges bytes;
+        }
+
+        location = /stream/upload {
+            proxy_pass http://sovereign_v15_uplink:8080/upload;
+            proxy_set_header Host $host;
+            client_max_body_size 500M;
+        }
+
+        location /stream/ {
+            alias /usr/share/nginx/html/media/;
+            autoindex off;
+            add_header Accept-Ranges bytes;
+        }
+
+        # BACKEND PROXY (GATEWAY TO ALL ENGINE DATA)
+        location ~* ^/(api|ws|login|register|reset|verify|admin_auth|check|media/latest|mock_checkout|forgot|token) {
+            proxy_pass http://sovereign_v15_backend:5000;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+        }
+    }
+
+    # 2. MASTER ADMIN (vazo.fectok.com)
+    server {
+        listen 80;
+        server_name vazo.fectok.com;
+
+        location / {
+            root /usr/share/nginx/html/admin;
+            index index.html;
+            try_files $uri $uri/ /index.html;
+        }
+
+        location ~* ^/(api|ws|login|register|reset|verify|admin_auth|check|media/latest|mock_checkout|forgot|token|sound_engine) {
+            proxy_pass http://sovereign_v15_backend:5000;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+        }
+    }
+}

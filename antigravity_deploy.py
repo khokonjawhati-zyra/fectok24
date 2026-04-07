@@ -1,9 +1,10 @@
 import os
 
 def generate_sovereign_dna():
-    print("🚀 Antigravity: Initializing Sovereign Mirror-🧬 Sync...")
+    print("Antigravity: Initializing Absolute Mirror Sync...")
     
-    # 1. Nginx Master Hook (Domain-Based Virtual Hosts & SSL)
+    # 1. GOLDEN NGINX DNA (Cloudflare-Universal & Asset-Safe)
+    # This template handles base-href /admin/ automatically.
     nginx_conf = """
 user  nginx;
 worker_processes  auto;
@@ -22,37 +23,40 @@ http {
     proxy_buffering off;
     client_max_body_size 500M;
 
+    # Shared Proxy Headers for Absolute Parity
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto https;
+
     # ═══════════════════════════════════════════════════════════════
-    # 1. HTTP -> HTTPS REDIRECT (SOVEREIGN OATH)
+    # 1. ADMIN VAULT (vazo.fectok.com)
     # ═══════════════════════════════════════════════════════════════
     server {
         listen 80;
-        server_name fectok.com vazo.fectok.com;
-        return 301 https://$host$request_uri;
-    }
-
-    # ═══════════════════════════════════════════════════════════════
-    # 2. ADMIN VAULT (vazo.fectok.com) [Ghost-Hook]
-    # ═══════════════════════════════════════════════════════════════
-    server {
         listen 443 ssl;
         server_name vazo.fectok.com;
 
         ssl_certificate /etc/letsencrypt/live/fectok.com/fullchain.pem;
         ssl_certificate_key /etc/letsencrypt/live/fectok.com/privkey.pem;
 
-        location / {
-            proxy_pass http://admin_panel:8108;
+        # Resolver for Flutter base-href /admin/
+        location /admin/ {
+            proxy_pass http://admin_panel:8108/;
             proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_read_timeout 600s;
+        }
+
+        location / {
+            proxy_pass http://admin_panel:8108/;
+            proxy_set_header Host $host;
         }
     }
 
     # ═══════════════════════════════════════════════════════════════
-    # 3. USER FACE & API GATEWAY (fectok.com)
+    # 2. USER FACE & API GATEWAY (fectok.com)
     # ═══════════════════════════════════════════════════════════════
     server {
+        listen 80;
         listen 443 ssl;
         server_name fectok.com;
 
@@ -63,7 +67,6 @@ http {
         location / {
             proxy_pass http://user_panel:3000;
             proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
         }
 
         # Global API & WS Pulse
@@ -73,14 +76,12 @@ http {
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "upgrade";
             proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
         }
 
         # Media Stream Tunnel
         location ^~ /stream/ {
             proxy_pass http://uplink_hub:8080;
             proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
         }
     }
 }
@@ -101,9 +102,6 @@ services:
       - /var/lib/sovereign/auth:/app/auth_data
       - /var/www/html/media/videos:/app/vault/data
     restart: always
-    depends_on:
-      - mirror_sync
-
 
   # Pillar 2: Media Uplink
   uplink_hub:
@@ -111,12 +109,6 @@ services:
     container_name: sovereign_v15_uplink
     volumes:
       - /var/www/html/media/videos:/app/vault/data
-    restart: always
-
-  # Pillar 3: Mirror Sync (Redis)
-  mirror_sync:
-    image: redis:latest
-    container_name: sovereign_v15_redis
     restart: always
 
   # Pillar 4: Admin Panel (Ghost-Locked)
@@ -163,7 +155,6 @@ services:
       - ai_processor
     restart: always
 
-
 networks:
   default:
     name: sovereign_v15_mesh
@@ -175,8 +166,8 @@ networks:
     with open("docker-compose.yml", "w", encoding="utf-8") as f:
         f.write(docker_compose.strip())
 
-    print("🛡️ Sovereign DNA Files Generated successfully!")
-    print("Next steps: python antigravity_deploy.py -> git push -> docker-compose up -d --build")
+    print("Sovereign DNA Files Generated Successfully!")
+    print("Zero-Manual-Change Protocol: [READY]")
 
 if __name__ == "__main__":
     generate_sovereign_dna()

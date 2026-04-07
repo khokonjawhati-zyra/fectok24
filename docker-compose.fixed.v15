@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  gateway:
+    image: nginx:latest
+    container_name: sovereign_v15_gateway
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - /var/lib/sovereign/media:/usr/share/nginx/html/media:ro
+      - ./webuser_panel:/usr/share/nginx/html/user:ro
+      - ./webadmin_panel:/usr/share/nginx/html/admin:ro
+    ports:
+      - "80:80"
+    restart: always
+
+  backend_node:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sovereign_v15_backend
+    environment:
+      - PILLAR=ADMIN_ABSOLUTE_TRUTH
+      - SYSTEM_MODE=PRODUCTION
+    volumes:
+      - /var/lib/sovereign/media:/app/vault/data
+      - /var/lib/sovereign/auth:/app/auth_data
+      - ./backend/main.py:/app/main.py
+    ports:
+      - "5000:5000"
+      - "8108:5000"
+    restart: always
+    depends_on:
+      - mirror_sync
+
+  uplink_hub:
+    build:
+      context: ./sovereign_media_hub/uplink
+      dockerfile: Dockerfile
+    container_name: sovereign_v15_uplink
+    environment:
+      - PILLAR=REAL_TIME_UPLINK
+      - SYSTEM_MODE=PRODUCTION
+    volumes:
+      - /var/lib/sovereign/media:/app/vault/data
+    ports:
+      - "8080:8080"
+    restart: always
+
+  mirror_sync:
+    image: redis:latest
+    container_name: sovereign_v15_redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  ai_processor:
+    build:
+      context: ./sovereign_media_hub/processor
+      dockerfile: Dockerfile
+    container_name: sovereign_v15_processor
+    environment:
+      - PILLAR=AI_PROCESSOR
+      - SYSTEM_MODE=PRODUCTION
+    volumes:
+      - /var/lib/sovereign/media:/app/vault/data
+    restart: always
+    depends_on:
+      - uplink_hub
+
+networks:
+  default:
+    name: sovereign_v15_mesh

@@ -1,0 +1,92 @@
+
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+# --- ADMIN PANEL (vazo.fectok.com) ---
+server {
+    listen 80;
+    server_name vazo.fectok.com;
+    root /var/www/html/admin;
+    index index.html;
+
+    # Admin Panel WebSocket
+    location /ws/ {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host $host;
+        proxy_read_timeout 86400;
+    }
+
+    # Admin API Proxy
+    location ~* ^/(admin_auth_init|admin_auth|api/v15|auth|login|logout|dashboard|governance|system_pulse|user_management|content_management|analytics|settings|sync|mesh|vault|sovereign|core|initialize|handshake|verify|token|refresh|upload|media|ledger|finance|deposit|withdraw|transfer|bridge|bank|wallet|transaction|report|log|audit|config|backup|restore|update|deploy|monitor|health|status|ping) {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        add_header Access-Control-Allow-Origin *;
+        add_header Access-Control-Allow-Methods "GET, POST, OPTIONS, PUT, DELETE, PATCH";
+        add_header Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With";
+        
+        if ($request_method = OPTIONS) {
+            return 204;
+        }
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+
+# --- USER PANEL (fectok.com) ---
+server {
+    listen 80;
+    server_name fectok.com www.fectok.com;
+    root /opt/sovereign/core/webuser_panel;
+    index index.html;
+
+    # User API Proxy (OTP-focused)
+    location ~* ^/(forgot_password|reset_password|recover_pulse|verify_otp|login|auth|resend_otp|update_password|api/v15|register|system_pulse|upload|media) {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        add_header Access-Control-Allow-Origin *;
+    }
+
+    # User WebSocket
+    location /ws/ {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host $host;
+        proxy_read_timeout 86400;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+
+# --- CATCH-ALL FOR IP ACCESS ---
+server {
+    listen 80 default_server;
+    server_name _;
+    
+    # Defaults to User Panel on IP access
+    location / {
+        root /opt/sovereign/core/webuser_panel;
+        try_files $uri $uri/ /index.html;
+    }
+}
+
+# --- Dedicated Port Listeners (Backward Compatibility) ---
+server { listen 8108; server_name _; root /var/www/html/admin; index index.html; location / { try_files $uri $uri/ /index.html; } }
+server { listen 8101; listen 800; server_name _; root /opt/sovereign/core/webuser_panel; index index.html; location / { try_files $uri $uri/ /index.html; } }
+

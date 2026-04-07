@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  media_processor:
+    build: ./processor
+    container_name: sovereign_media_processor
+    volumes:
+      - ${STORAGE_PATH}:/app/vault/data
+      - ./.env:/.env
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - sovereign_network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 1G
+
+  media_uplink:
+    build: ./uplink
+    container_name: sovereign_media_uplink
+    ports:
+      - "8080:8080"
+    volumes:
+      - ${STORAGE_PATH}:/app/vault/data
+      - ./.env:/.env
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - sovereign_network
+    depends_on:
+      - media_processor
+
+networks:
+  sovereign_network:
+    external: true

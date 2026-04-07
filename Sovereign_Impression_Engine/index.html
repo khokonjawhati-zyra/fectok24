@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impression Control</title>
+    <style>
+        body {
+            background: #121212;
+            color: #FF00FF;
+            font-family: sans-serif;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h3>🚀 Impression Control</h3>
+    L % <input type='range' id='l' oninput='u()' title='Like Weight'> <span id='lv'>50</span><br>
+    C % <input type='range' id='c' oninput='u()' title='Comment Weight'> <span id='cv'>50</span><br>
+    S % <input type='range' id='s' oninput='u()' title='Share Weight'> <span id='sv'>50</span><br>
+    <script>
+        function u() {
+            const l = document.getElementById('l').value, c = document.getElementById('c').value, s = document.getElementById('s').value;
+            document.getElementById('lv').innerText = l; document.getElementById('cv').innerText = c; document.getElementById('sv').innerText = s;
+            fetch('http://localhost:6000/update_weights?l=' + l + '&c=' + c + '&s=' + s, { method: 'POST' });
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,36 @@
+version: '3.8'
+services:
+  sound_engine_redis:
+    image: redis:alpine
+    ports:
+      - "6381:6379"
+    networks:
+      - sovereign_v15_mesh
+  sound_engine_api:
+    image: python:3.11-slim-bookworm
+    command: sh -c "pip install fastapi uvicorn redis python-multipart && uvicorn main:app --host 0.0.0.0 --port 8000"
+    volumes:
+      - ./:/app
+      - ./sound_vault:/app/sound_vault_data
+    working_dir: /app
+    ports:
+      - '9900:8000'
+    environment:
+      - SOUND_VAULT_DIR=/app/sound_vault_data
+      - REDIS_HOST=sound_engine_redis
+    depends_on:
+      - sound_engine_redis
+    networks:
+      - sovereign_v15_mesh
+  admin:
+    image: nginx:alpine
+    ports:
+      - '8088:80'
+    volumes:
+      - ./index.html:/usr/share/nginx/html/index.html
+    networks:
+      - sovereign_v15_mesh
+
+networks:
+  sovereign_v15_mesh:
+    external: true

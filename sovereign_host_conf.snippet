@@ -1,0 +1,77 @@
+
+    # USER PANEL (fectok.com) - ULTIMATE MASTER BLOCK
+    server {
+        listen 80 default_server;
+        server_name fectok.com www.fectok.com 167.71.193.34;
+
+        # MAIN FE
+        location / {
+            root /var/www/sovereign/user;
+            index index.html;
+            try_files $uri $uri/ /index.html;
+            add_header X-Panel "USER_V15";
+        }
+
+        # UNIVERSAL SOUND/DATA BRIDGE (V15 FIX: Port 9900)
+        location ^~ /sound_engine/ {
+            proxy_pass http://127.0.0.1:9900/; 
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_http_version 1.1;
+        }
+
+        # ULTIMATE UNIVERSAL UPLOAD BRIDGE
+        location ~* ^/(upload|avatar|profile_pic|register_media|media_upload|stream/upload) {
+             rewrite ^/(avatar|profile_pic|media_upload|stream/upload)/(.*) /upload/$2 break;
+             rewrite ^/(avatar|profile_pic|media_upload|stream/upload)$ /upload break;
+             
+             proxy_pass http://127.0.0.1:8080;
+             proxy_set_header Host $host;
+             proxy_set_header X-Real-IP $remote_addr;
+             client_max_body_size 500M;
+        }
+
+        # BACKEND ENGINE BRIDGE (V15 FIX: Port 5000)
+        location ~* ^/(api|ws|login|register|reset|verify|admin_auth|check|media/latest|mock_checkout|forgot|token) {
+            proxy_pass http://127.0.0.1:5000;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+        }
+
+        location /media/ {
+            proxy_pass http://127.0.0.1:8080/stream/;
+            proxy_set_header Host $host;
+            add_header Access-Control-Allow-Origin *;
+        }
+
+        location /stream/ {
+            proxy_pass http://127.0.0.1:8080/stream/;
+            proxy_set_header Host $host;
+            add_header Access-Control-Allow-Origin *;
+        }
+    }
+
+    # ADMIN PANEL (vazo.fectok.com)
+    server {
+        listen 80;
+        server_name vazo.fectok.com;
+
+        location / {
+            root /var/www/sovereign/admin;
+            index index.html;
+            try_files $uri $uri/ /index.html;
+            add_header X-Panel "ADMIN_V15";
+        }
+
+        location ~* ^/(api|ws|login|register|reset|verify|admin_auth|check|media/latest|mock_checkout|forgot|token|sound_engine) {
+            proxy_pass http://127.0.0.1:5000;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+        }
+    }

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sovereign Sponsor Admin</title>
+    <style>
+        body {
+            background: #080808;
+            color: #00FFFF;
+            font-family: monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .card {
+            background: #111;
+            padding: 20px;
+            border: 1px solid #00FFFF;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+        }
+
+        h1 {
+            font-size: 14px;
+            letter-spacing: 2px;
+        }
+
+        .stat {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .label {
+            color: #888;
+            font-size: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>SPONSOR CLOUD STATUS [A_111]</h1>
+        <div class="label">ADMIN REVENUE WALLET</div>
+        <div id="coins" class="stat">12450 COINS</div>
+        <div class="label">COIN-TO-VIEW RATE</div>
+        <div id="rate" class="stat">1.0 : 10.0</div>
+        <div class="label">AD FREQUENCY</div>
+        <div id="freq" class="stat">5 VIDEOS</div>
+    </div>
+    <script>
+        async function update() {
+            try {
+                const res = await fetch('http://localhost:9000/stats');
+                const data = await res.json();
+                document.getElementById('coins').innerText = data.admin_coins + ' COINS';
+
+                const res2 = await fetch('http://localhost:9000/config');
+                const conf = await res2.json();
+                document.getElementById('rate').innerText = '1.0 : ' + conf.coin_to_view_rate;
+                document.getElementById('freq').innerText = conf.ad_frequency + ' VIDEOS';
+            } catch (e) { }
+        }
+        setInterval(update, 2000);
+        update();
+    </script>
+</body>
+
+</html>

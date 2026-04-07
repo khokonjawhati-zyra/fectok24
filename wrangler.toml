@@ -1,0 +1,24 @@
+# Sovereign V15: Cloud Architecture DNA [wrangler.toml]
+
+name = "lovetok-auth-engine"
+account_id = "8ba280fd13be84bf622e03f9525dc3dd"
+compatibility_date = "2024-03-10"
+
+# Pillar 1: Media Garden Binding
+[[r2_buckets]]
+binding = "MY_BUCKET"
+bucket_name = "fectokvediostorege"
+
+# Pillar 2: User Data & Session Binding
+[[d1_databases]]
+binding = "DB"
+database_name = "lovetok-users"
+database_id = "71926302-5446-4417-bd32-088deea2c760"
+
+[[kv_namespaces]]
+binding = "KV_BINDING"
+id = "0350a762992e4d0698f9042664dc910f"
+
+[vars]
+SYSTEM_MODE = "PRODUCTION"
+SOVEREIGN_UPLINK = "ACTIVE"
